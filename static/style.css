@@ -300,6 +300,7 @@ footer {
   border-top: solid 1px #e6e6e6;
   color: #37586d;
   text-align: right;
+  margin-top: 15px;
 }
 footer a {
   opacity: .3;
