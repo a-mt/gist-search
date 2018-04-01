@@ -1,12 +1,33 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require __DIR__ . '/inc.config.php';
-
-define("DEBUG", false);
 
 //+--------------------------------------------------------
 //| AUTH
 //+--------------------------------------------------------
+
+if(isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: /');
+    exit;
+}
+
+if(isset($_GET['sync'])) {
+    $i = 1;
+    while(true) {
+        if(!isset($_SESSION["gists_" . $i])) {
+            break;
+        }
+        unset($_SESSION["gists_" . $i]);
+        $i++;
+    }
+    header('Location: /');
+    exit;
+}
 
 // Ask API for login
 if(isset($_POST["login"])) {
@@ -39,6 +60,67 @@ if(isset($_SESSION["token"]) && !isset($_SESSION["username"])) {
             unset($_SESSION["token"]);
         }
     }
+}
+
+//+--------------------------------------------------------
+//| GET GISTS
+//+--------------------------------------------------------
+
+function curl_header(&$h) {
+    return function($c, $header_line) use(&$h) {
+        if(strpos($header_line, ':')) {
+            list($name, $content) = explode(": ", $header_line, 2);
+            $h[$name] = trim($content);
+        }
+        return strlen($header_line);
+    };
+}
+
+function get_gists($i = 1) {
+
+    // Retrieve cached data
+    if(isset($_SESSION["gists_$i"])) {
+        print $_SESSION["gists_$i"];
+        flush();
+        ob_flush();
+
+        $has_next = isset($_SESSION["gists_" . ($i + 1)]);
+
+    // Query Github
+    } else {
+        $h = [];
+        $c = curl_init('https://api.github.com/users/a-mt/gists?access_token=' . $_SESSION["token"] . '&page=' . $i);
+
+        curl_setopt($c, CURLOPT_HTTPHEADER, array('User-Agent: Search gist'));
+        curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($c, CURLOPT_FRESH_CONNECT, true);
+        curl_setopt($c, CURLOPT_HEADERFUNCTION, curl_header($h));
+    
+        // Query url
+        if(!$response = curl_exec($c)) {
+            return;
+        }
+        $_SESSION["gists_$i"] = $response;
+        print $response;
+        flush();
+        ob_flush();
+
+        // Check status code
+        $status_code = curl_getinfo($c, CURLINFO_HTTP_CODE);
+        if($status_code != 200) {
+            return;
+        }
+
+        // Is last page ?
+        $has_next = isset($h['Link']) && preg_match('/rel="next"/', $h['Link']);
+    }
+    if($has_next) {
+        return get_gists($i + 1);
+    }
+}
+
+if(isset($_GET['get_gists'])) {
+    return get_gists();
 }
 
 //+--------------------------------------------------------

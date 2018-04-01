@@ -1,6 +1,6 @@
-# Gist file uploader
+# Gist file search
 
-Demo on [https://gist-file-uploader.herokuapp.com/](https://gist-file-uploader.herokuapp.com/)
+Demo on [https://gist-file-search.herokuapp.com/](https://gist-file-search.herokuapp.com/)
 
 ## Install
 
