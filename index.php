@@ -89,13 +89,16 @@ function get_gists($i = 1) {
     // Query Github
     } else {
         $h = [];
-        $c = curl_init('https://api.github.com/users/a-mt/gists?access_token=' . $_SESSION["token"] . '&page=' . $i);
+        $c = curl_init('https://api.github.com/users/a-mt/gists?page=' . $i);
 
-        curl_setopt($c, CURLOPT_HTTPHEADER, array('User-Agent: Search gist'));
+        curl_setopt($c, CURLOPT_HTTPHEADER, array(
+            'User-Agent: Search gist',
+            'Authorization: token ' . $_SESSION["token"]
+        ));
         curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($c, CURLOPT_FRESH_CONNECT, true);
         curl_setopt($c, CURLOPT_HEADERFUNCTION, curl_header($h));
-    
+
         // Query url
         if(!$response = curl_exec($c)) {
             return;
