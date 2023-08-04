@@ -1,0 +1,13 @@
+version: '3'
+
+# File to run a "dev" environment locally
+services:
+  apache:
+    image: gist-search:latest
+    build:
+      context: .
+      dockerfile: Dockerfile 
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html:delegated

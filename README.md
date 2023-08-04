@@ -30,4 +30,11 @@ Go to `Settings` (upper right) > `Developer settings` > `New OAuth App`
 * Choose an application name
 * Type the full URL of your app's website
 * In "Authorization callback URL" type your app's website followed by `/auth`
-* Copy the Client ID and Client Secret and change the constants in `inc.config.php`
+* Copy the Client ID and Client Secret and change the constants in `src/.env`
+
+    ```
+    CLIENT_ID=xxx
+    CLIENT_SECRET=xxx
+    GITHUB_REPO=https://github.com/a-mt/gist-search
+    PASSPHRASE=xxx
+    ```
