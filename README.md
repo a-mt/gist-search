@@ -38,3 +38,11 @@ Go to `Settings` (upper right) > `Developer settings` > `New OAuth App`
     GITHUB_REPO=https://github.com/a-mt/gist-search
     PASSPHRASE=xxx
     ```
+
+## Push on Heroku
+
+```
+git subtree push --prefix src heroku master
+
+git push heroku `git subtree split --prefix src master`:master
+```
