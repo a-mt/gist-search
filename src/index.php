@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL & ~E_NOTICE);
 
 session_start();
 require __DIR__ . '/inc.config.php';
@@ -45,19 +45,27 @@ if(isset($_POST["login"])) {
 }
 
 // Check token is valid
-if(isset($_SESSION["token"]) && !isset($_SESSION["username"])) {
-    $c = curl_init('https://api.github.com/applications/' . CLIENT_ID . '/tokens/' . $_SESSION["token"]);
+if(isset($_SESSION["access_token"]) && !isset($_SESSION["username"])) {
+    $h = [
+        'Accept' => 'application/vnd.github+json',
+    ];
+    $c = curl_init('https://api.github.com/user');
 
-    curl_setopt($c, CURLOPT_HTTPHEADER, array('User-Agent: File search'));
-    curl_setopt($c, CURLOPT_USERPWD, CLIENT_ID . ":" . CLIENT_SECRET);
+    curl_setopt($c, CURLOPT_HTTPHEADER, array(
+        'User-Agent: Search gist',
+        'Authorization: ' . $_SESSION["token_type"] . ' ' . $_SESSION["access_token"]
+    ));
     curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($c, CURLOPT_FRESH_CONNECT, true);
+    curl_setopt($c, CURLOPT_HEADERFUNCTION, curl_header($h));
+
     if($response = curl_exec($c)) {
         $json = json_decode($response, true);
 
-        if(isset($json["user"])) {
-            $_SESSION["username"] = $json["user"]["login"];
+        if(isset($json["login"])) {
+            $_SESSION["username"] = $json["login"];
         } else {
-            unset($_SESSION["token"]);
+            // unset($_SESSION["access_token"]);
         }
     }
 }
@@ -89,11 +97,11 @@ function get_gists($i = 1) {
     // Query Github
     } else {
         $h = [];
-        $c = curl_init('https://api.github.com/users/a-mt/gists?page=' . $i);
+        $c = curl_init('https://api.github.com/users/' . $_SESSION["username"] . '/gists?page=' . $i);
 
         curl_setopt($c, CURLOPT_HTTPHEADER, array(
             'User-Agent: Search gist',
-            'Authorization: token ' . $_SESSION["token"]
+            'Authorization: ' . $_SESSION["token_type"] . ' ' . $_SESSION["access_token"]
         ));
         curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($c, CURLOPT_FRESH_CONNECT, true);
@@ -122,7 +130,7 @@ function get_gists($i = 1) {
     }
 }
 
-if(isset($_GET['get_gists'])) {
+if($_SESSION["username"] && isset($_GET['get_gists'])) {
     return get_gists();
 }
 

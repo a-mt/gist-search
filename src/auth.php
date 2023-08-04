@@ -24,10 +24,13 @@ if(isset($_GET["code"]) && $_GET["state"] === $_SESSION["tmpcode"]) {
     curl_close($c);
 
     $json = json_decode($response, true);
+    // Array ( [access_token] => xxx [token_type] => bearer [scope] => gist )
+
     if($json["error"]) {
         $_SESSION["error"] = $json["error_description"];
     } else {
-        $_SESSION["token"] = $json["access_token"];
+        $_SESSION["access_token"] = $json["access_token"];
+        $_SESSION["token_type"] = $json["token_type"];
     }
 }
 header("Location:/");
